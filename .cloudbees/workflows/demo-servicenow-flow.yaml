@@ -31,7 +31,7 @@ jobs:
           password: ${{ secrets.SERVICENOW_PASSWORD }}
           action-type: update
           sys-id: ${{ fromJSON(needs.create-cr.outputs.snow_create_output).sys_id }}
-          description: "Updating Description from CBP Workflow"
+          long-description: "Updating Description from CBP Workflow"
           assignment-group: "Change Management"
           priority: "3 - Moderate"
           risk: "Low"
