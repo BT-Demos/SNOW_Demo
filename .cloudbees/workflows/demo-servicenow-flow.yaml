@@ -46,9 +46,9 @@ jobs:
           cr-number: ${{ fromJSON(needs.create-cr.outputs.snow_create_output).number }}
           poll-interval: 1
           poll-duration: 60
-          state-field-value: "Review"
-          #approval-field-value-approved: 'Approved'
-          #approval-field-value-rejected: 'Rejected'
+          #state-field-value: "Review"
+          approval-field-value-approved: 'Approved'
+          approval-field-value-rejected: 'Rejected'
       - id: servicenow-close-ticket
         name: Trigger Servicenow Close Ticket
         uses: cloudbees-io/servicenow@v1
