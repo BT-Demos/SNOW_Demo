@@ -1,0 +1,66 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: Demo Servicenow Flow
+on:
+  workflow_dispatch:
+jobs:
+  create-cr:
+    steps:
+      - id: 'snow-create'
+        name: Servicenow Create Normal Ticket
+        uses: cloudbees-io/servicenow@v1
+        with:
+          url: ${{ vars.SERVICENOW_URL }}
+          username: ${{ secrets.SERVICENOW_USERNAME }}
+          password: ${{ secrets.SERVICENOW_PASSWORD }}
+          action-type: create
+          cr-type: Normal
+          short-description: "Test CR from CBP"
+    outputs:
+      snow_create_output: ${{ steps.snow-create.outputs.servicenow_output }}
+
+  update-cr:
+    needs:
+      - create-cr
+    steps:
+      - name: Trigger Servicenow Update Mode
+        uses: cloudbees-io/servicenow@v1
+        with:
+          url: ${{ vars.SERVICENOW_URL }}
+          username: ${{ secrets.SERVICENOW_USERNAME }}
+          password: ${{ secrets.SERVICENOW_PASSWORD }}
+          action-type: update
+          sys-id: ${{ fromJSON(needs.create-cr.outputs.snow_create_output).sys_id }}
+          description: "Updating Description from CBP Workflow"
+          assignment-group: "Change Management"
+          priority: "3 - Moderate"
+          risk: "Low"
+          additional-parameters : '{"risk_impact_analysis":"No known risks","implementation_plan": "Describe the implementation plan here"}'
+      - id: servicenow-wait-for-approval
+        name: Trigger Servicenow Wait For Approval
+        uses: cloudbees-io/servicenow-poll-for-approval@v1
+        with:
+          url: ${{ vars.SERVICENOW_URL }}
+          username: ${{ secrets.SERVICENOW_USERNAME }}
+          password: ${{ secrets.SERVICENOW_PASSWORD }}
+          cr-number: ${{ fromJSON(needs.create-cr.outputs.snow_create_output).number }}
+          poll-interval: 1
+          poll-duration: 60
+          state-field-value: "Review"
+          #approval-field-value-approved: 'Approved'
+          #approval-field-value-rejected: 'Rejected'
+      - id: servicenow-close-ticket
+        name: Trigger Servicenow Close Ticket
+        uses: cloudbees-io/servicenow@v1
+        with:
+          url: ${{ vars.SERVICENOW_URL }}
+          username: ${{ secrets.SERVICENOW_USERNAME }}
+          password: ${{ secrets.SERVICENOW_PASSWORD }}
+          action-type: "update"
+          sys-id: ${{ fromJSON(needs.create-cr.outputs.snow_create_output).sys_id }}
+          short-description: "CBP Test CR - Closed"
+          # Update Review to Close
+          state: "Closed"
+          close-code: "Successful"
+          close-notes: "Successfully completed"
+          
