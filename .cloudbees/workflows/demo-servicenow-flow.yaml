@@ -17,7 +17,7 @@ jobs:
           cr-type: Normal
           short-description: "Test CR from CBP"
     outputs:
-      snow_create_output: ${{ steps.snow-create.outputs.servicenow_output }}
+      snow_create_output: ${{ steps.snow-create.outputs.servicenow-output }}
 
   update-cr:
     needs:
